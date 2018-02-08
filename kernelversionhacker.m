@@ -2,6 +2,7 @@
 #include <mach/mach.h>
 #include <sys/utsname.h>
 #include <stdlib.h>
+#import <Foundation/Foundation.h>
 
 #ifdef __arm64__
 #define IMAGE_OFFSET 0x2000
@@ -295,7 +296,9 @@ int main(int argc, char **argv, char **envp) {
     
     struct utsname u = {0};
     uname(&u);
-    
+    NSString* currentKernel = [NSString stringWithFormat:@"%s", u.version];
+    NSString* newKernel = [currentKernel stringByReplacingOccurrencesOfString:@"RELEASE_ARM" withString:@"MarijuanARM"];
+    char* kernelstring = [newKernel UTF8String];
     int ret = 0;
     int tries=0;
     
@@ -312,7 +315,7 @@ retry:
     
     if (argc >= 2)
         ret = updateVersionString(argv[1]);
-    else ret = updateVersionString(DEFAULT_VERSION_STRING);
+    else ret = updateVersionString(kernelstring);
     
     memset(&u, 0x0, sizeof(u));
     
@@ -330,7 +333,7 @@ retry:
     }
     
     else {
-        if (strcmp(u.version, DEFAULT_VERSION_STRING)) {
+        if (strcmp(u.version, kernelstring)) {
             memset(&u, 0x0, sizeof(u));
             goto retry;
         }
